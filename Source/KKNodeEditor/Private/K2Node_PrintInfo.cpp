@@ -11,6 +11,8 @@
 #include "KKNodeBlueprintFunctionLibrary.h"
 #include "Internationalization/Regex.h"
 #include "Kismet/KismetStringLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetTextLibrary.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 
 void UK2Node_PrintInfo::AllocateDefaultPins()
@@ -171,47 +173,91 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			FString CreatePinName = FString::Printf(TEXT("[%d]"), i);
 			// 获取到刚才添加的 Pin
 			UEdGraphPin* ArrayInputPin = MakeArrayNode->FindPinChecked(CreatePinName);
+
+			// 辅助Link函数
+			auto quick_link = [&](FName FunctionName,FName FuncPinName)
+			{
+				UK2Node_CallFunction * ConvertFunc = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this,SourceGraph);
+				ConvertFunc->SetFromFunction(UKismetStringLibrary::StaticClass()->FindFunctionByName(FunctionName));
+				ConvertFunc->AllocateDefaultPins();
+				UEdGraphPin * func_input_pin = ConvertFunc->FindPinChecked(FuncPinName,EGPD_Input);
+				UEdGraphPin * func_ret_pin = ConvertFunc->GetReturnValuePin();
+				/*************************************** 要注意MoveLink和MakeLink的区别 *************************************/
+				CompilerContext.MovePinLinksToIntermediate(*tmp_pin,*func_input_pin);
+				func_ret_pin->MakeLinkTo(ArrayInputPin);
+			};
 			
-			
+			// 检测输入Pin的类型,转换到函数的参数类型;
+			// 因为绑定的函数参数是 TArray<FString> ,所以需要全部转换到 FString;
 			if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_String))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find pc string value"));
 				CompilerContext.MovePinLinksToIntermediate(*tmp_pin, *ArrayInputPin);
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Int))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find pc int value"));
+				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_IntToString),TEXT("InInt"));
+			}
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Float))
+			{
+				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_FloatToString),TEXT("InFloat"));
+			}
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Boolean))
+			{
+				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_BoolToString),TEXT("InBool"));
+			}
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Byte))
+			{
+				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ByteToString),TEXT("InByte"));
+			}
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Object))
+			{
+				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ObjectToString),TEXT("InObj"));
+			}
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Name))
+			{
+				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_NameToString),TEXT("InName"));
+			}
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Text))
+			{
 				UK2Node_CallFunction * ConvertFunc = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this,SourceGraph);
-				ConvertFunc->SetFromFunction(UKismetStringLibrary::StaticClass()->FindFunctionByName(
-					GET_MEMBER_NAME_CHECKED(UKismetStringLibrary,Conv_IntToString)));
+				ConvertFunc->SetFromFunction(UKismetTextLibrary::StaticClass()->FindFunctionByName(
+				GET_FUNCTION_NAME_CHECKED(UKismetTextLibrary,Conv_TextToString)));
 				ConvertFunc->AllocateDefaultPins();
-				UEdGraphPin * func_input_pin = ConvertFunc->FindPinChecked(TEXT("InInt"),EGPD_Input);
+				UEdGraphPin * func_input_pin = ConvertFunc->FindPinChecked(TEXT("InText"),EGPD_Input);
 				UEdGraphPin * func_ret_pin = ConvertFunc->GetReturnValuePin();
-
 				/*************************************** 要注意MoveLink和MakeLink的区别 *************************************/
 				CompilerContext.MovePinLinksToIntermediate(*tmp_pin,*func_input_pin);
 				func_ret_pin->MakeLinkTo(ArrayInputPin);
 			}
-			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Float))
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ColorToString),TEXT("C"));
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_MatrixToString),TEXT("InMatrix"));
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_RotatorToString),TEXT("InRot"));
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_TransformToString),TEXT("InTrans"));
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_Vector2dToString),TEXT("InVec"));
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_VectorToString),TEXT("InVec"));
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_IntPointToString),TEXT("InIntPoint"));
+			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_IntVectorToString),TEXT("InIntVec"));
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Class))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find pc float value"));
 				UK2Node_CallFunction * ConvertFunc = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this,SourceGraph);
-				ConvertFunc->SetFromFunction(UKismetStringLibrary::StaticClass()->FindFunctionByName(
-					GET_MEMBER_NAME_CHECKED(UKismetStringLibrary,Conv_FloatToString)));
+				ConvertFunc->SetFromFunction(UKismetSystemLibrary::StaticClass()->FindFunctionByName(
+				GET_FUNCTION_NAME_CHECKED(UKismetSystemLibrary,GetClassDisplayName)));
 				ConvertFunc->AllocateDefaultPins();
-				
-				UEdGraphPin * func_input_pin = ConvertFunc->FindPinChecked(TEXT("InFloat"),EGPD_Input);
+				UEdGraphPin * func_input_pin = ConvertFunc->FindPinChecked(TEXT("Class"),EGPD_Input);
 				UEdGraphPin * func_ret_pin = ConvertFunc->GetReturnValuePin();
-				
+				/*************************************** 要注意MoveLink和MakeLink的区别 *************************************/
 				CompilerContext.MovePinLinksToIntermediate(*tmp_pin,*func_input_pin);
 				func_ret_pin->MakeLinkTo(ArrayInputPin);
 			}
-			
+			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Enum))
+			{
+				// 此函数仅仅返回枚举索引
+				// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ByteToString),TEXT("InByte"));
+				
+			}
+			// 其他数据格式没啥用;
 		}
-		
-		
 	}
-	
 	BreakAllNodeLinks();
 }
 
