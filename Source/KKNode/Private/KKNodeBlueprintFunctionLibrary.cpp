@@ -13,3 +13,9 @@ void UKKNodeBlueprintFunctionLibrary::KKNode_SaySomething(const TArray<FString>&
 	FString str = FString::Join(Data,TEXT("->"));
 	UE_LOG(LogTemp, Warning, TEXT("KKNode_SaySomething : %s "), *str);
 }
+
+void UKKNodeBlueprintFunctionLibrary::KKNode_PrintInfo(FString Format,const TArray<FString> & Data)
+{
+	FString str = FString::Join(Data,TEXT("->"));
+	UE_LOG(LogTemp,Warning,TEXT("format [%s] | content [%s]"),*Format,*str);
+}

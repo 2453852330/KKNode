@@ -19,4 +19,11 @@ public:
 
 	UFUNCTION(BlueprintCallable,meta=(BlueprintInternalUseOnly = true))
 	static void KKNode_SaySomething(const TArray<FString> & Data);
+
+	UFUNCTION(BlueprintCallable,meta=(BlueprintInternalUseOnly = true))
+	static void KKNode_PrintInfo(FString Format,const TArray<FString> & Data);
+
+
+	
+
 };
