@@ -128,14 +128,14 @@ void UK2Node_SaySomething::ExpandNode(FKismetCompilerContext& CompilerContext, U
 			FString CreatePinName = FString::Printf(TEXT("[%d]"),i);
 			// 获取到刚才添加的 Pin
 			UEdGraphPin * ArrayInputPin = MakeArray->FindPinChecked(CreatePinName);
-			UE_LOG(LogTemp,Warning,TEXT("Find Array Pin [%d] : [%s]"),i,ArrayInputPin?TEXT("Success"):TEXT("Failed"));
+			// UE_LOG(LogTemp,Warning,TEXT("Find Array Pin [%d] : [%s]"),i,ArrayInputPin?TEXT("Success"):TEXT("Failed"));
 			// 通过缓存的PinName获取到自身的 Pin
 			UEdGraphPin * MyInputPin = FindPinChecked(CachedPinNames[i],EGPD_Input);
-			UE_LOG(LogTemp,Warning,TEXT("Find Self Pin [%d] : [%s]"),i,MyInputPin?TEXT("Success"):TEXT("Failed"));
+			// UE_LOG(LogTemp,Warning,TEXT("Find Self Pin [%d] : [%s]"),i,MyInputPin?TEXT("Success"):TEXT("Failed"));
 
 			// 链接我们的输入到Array的Pin
 			FPinConnectionResponse Response = CompilerContext.MovePinLinksToIntermediate(*MyInputPin,*ArrayInputPin);
-			UE_LOG(LogTemp,Warning,TEXT("Pin Link : %s"),*Response.Message.ToString());
+			// UE_LOG(LogTemp,Warning,TEXT("Pin Link : %s"),*Response.Message.ToString());
 		}
 	}
 	BreakAllNodeLinks();
@@ -145,24 +145,24 @@ void UK2Node_SaySomething::ReallocatePinsDuringReconstruction(TArray<UEdGraphPin
 {
 	Super::ReallocatePinsDuringReconstruction(OldPins);
 
-	// UE_LOG(LogTemp,Warning,TEXT("------------ReallocatePinsDuringReconstruction------------"));
-	// UE_LOG(LogTemp,Warning,TEXT("ReallocatePins"));
+	// // UE_LOG(LogTemp,Warning,TEXT("------------ReallocatePinsDuringReconstruction------------"));
+	// // UE_LOG(LogTemp,Warning,TEXT("ReallocatePins"));
 	// for (UEdGraphPin * it : OldPins)
 	// {
-	// 	UE_LOG(LogTemp,Warning,TEXT("old pin names : %s"),*it->GetName());
+	// 	// UE_LOG(LogTemp,Warning,TEXT("old pin names : %s"),*it->GetName());
 	// }
 	// TArray<UEdGraphPin*> MyPins = GetAllPins();
-	// UE_LOG(LogTemp,Warning,TEXT("current pin num = [%d]"),MyPins.Num());
+	// // UE_LOG(LogTemp,Warning,TEXT("current pin num = [%d]"),MyPins.Num());
 	// for (UEdGraphPin * it : MyPins)
 	// {
-	// 	UE_LOG(LogTemp,Warning,TEXT("my pin names : %s"),*it->GetName());
+	// 	// UE_LOG(LogTemp,Warning,TEXT("my pin names : %s"),*it->GetName());
 	// }
-	// UE_LOG(LogTemp,Warning,TEXT("cache pin name num :[%d] "),CachedPinNames.Num());
+	// // UE_LOG(LogTemp,Warning,TEXT("cache pin name num :[%d] "),CachedPinNames.Num());
 	// for (FString it : CachedPinNames)
 	// {
-	// 	UE_LOG(LogTemp,Warning,TEXT("cache pin name : %s"),*it);
+	// 	// UE_LOG(LogTemp,Warning,TEXT("cache pin name : %s"),*it);
 	// }
-	// UE_LOG(LogTemp,Warning,TEXT("-------------------------------------------------"));
+	// // UE_LOG(LogTemp,Warning,TEXT("-------------------------------------------------"));
 	
 	// 经过测试发现:
 	// Exec 和 Then 仍然存在,所以我们需要重新添加 其他Pin

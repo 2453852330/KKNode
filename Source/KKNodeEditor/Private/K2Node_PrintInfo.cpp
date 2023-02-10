@@ -18,8 +18,7 @@
 void UK2Node_PrintInfo::AllocateDefaultPins()
 {
 	Super::AllocateDefaultPins();
-	UE_LOG(LogTemp, Warning,
-	       TEXT("/*************************************** AllocateDefaultPins *************************************/"));
+	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** AllocateDefaultPins *************************************/"));
 
 	CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Execute);
 
@@ -38,11 +37,8 @@ void UK2Node_PrintInfo::PinConnectionListChanged(UEdGraphPin* Pin)
 {
 	Super::PinConnectionListChanged(Pin);
 	// Modify();
-	UE_LOG(LogTemp, Warning,
-	       TEXT(
-		       "/*************************************** PinConnectionListChanged *************************************/"
-	       ));
-	UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s"), *Pin->GetName());
+	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PinConnectionListChanged *************************************/"));
+	// UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s"), *Pin->GetName());
 	// FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(GetBlueprint());
 	// FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprint());
 	KK_ResetPinType(Pin);
@@ -51,20 +47,18 @@ void UK2Node_PrintInfo::PinConnectionListChanged(UEdGraphPin* Pin)
 void UK2Node_PrintInfo::PinDefaultValueChanged(UEdGraphPin* Pin)
 {
 	Super::PinDefaultValueChanged(Pin);
-	UE_LOG(LogTemp, Warning,
-	       TEXT("/*************************************** PinDefaultValueChanged *************************************/"
-	       ));
-	UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s | new string : %s"), *Pin->GetName(), *Pin->GetDefaultAsString());
+	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PinDefaultValueChanged *************************************/"));
+	// UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s | new string : %s"), *Pin->GetName(), *Pin->GetDefaultAsString());
 
 	if (Pin != InputStrPin || Pin->LinkedTo.Num() != 0)
 	{
 		return;
 	}
 
-	UE_LOG(LogTemp,Warning,TEXT("/*************************************** test schema *************************************/"));
+	// UE_LOG(LogTemp,Warning,TEXT("/*************************************** test schema *************************************/"));
 	const UEdGraphSchema * Schema = GetSchema();
 	FString SchemaName = Schema->GetName();
-	UE_LOG(LogTemp,Warning,TEXT("get this node's schema's name : %s"),*SchemaName);
+	// UE_LOG(LogTemp,Warning,TEXT("get this node's schema's name : %s"),*SchemaName);
 	// Schema->GetGraphType(); check is function?Macro?
 	
 	// 移除其他的Pin,准备重新创建
@@ -109,9 +103,8 @@ void UK2Node_PrintInfo::PinDefaultValueChanged(UEdGraphPin* Pin)
 void UK2Node_PrintInfo::PinTypeChanged(UEdGraphPin* Pin)
 {
 	Super::PinTypeChanged(Pin);
-	UE_LOG(LogTemp, Warning,
-	       TEXT("/*************************************** PinTypeChanged *************************************/"));
-	UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s"), *Pin->GetName());
+	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PinTypeChanged *************************************/"));
+	// UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s"), *Pin->GetName());
 	KK_ResetPinType(Pin);
 }
 
@@ -130,8 +123,7 @@ void UK2Node_PrintInfo::GetMenuActions(FBlueprintActionDatabaseRegistrar& Action
 void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
-	UE_LOG(LogTemp, Warning,
-	       TEXT("/*************************************** ExpandNode *************************************/"));
+	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** ExpandNode *************************************/"));
 
 	UEdGraphPin* ExecPin = GetExecPin();
 	UEdGraphPin* ThenPin = FindPinChecked(UEdGraphSchema_K2::PN_Then, EGPD_Output);
@@ -197,27 +189,27 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			// 因为绑定的函数参数是 TArray<FString> ,所以需要全部转换到 FString;
 			if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_String))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find String type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find String type"));
 				CompilerContext.MovePinLinksToIntermediate(*tmp_pin, *ArrayInputPin);
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Int))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find Int type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find Int type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_IntToString),TEXT("InInt"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Float))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find FLoat type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find FLoat type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_FloatToString),TEXT("InFloat"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Boolean))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find Boolean type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find Boolean type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_BoolToString),TEXT("InBool"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Byte))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find Byte type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find Byte type"));
 
 				if (tmp_pin->LinkedTo.Num() <= 0)
 				{
@@ -228,7 +220,7 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 				// UEnum * Enum = Cast<UEnum>(tmp_pin->LinkedTo[0]->PinType.PinSubCategoryObject.Get());
 				// if (Enum)
 				// {
-				// 	UE_LOG(LogTemp,Warning,TEXT("find Enum"));
+				// 	// UE_LOG(LogTemp,Warning,TEXT("find Enum"));
 				// }
 				// else
 				// {
@@ -237,17 +229,17 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Object))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find Object type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find Object type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ObjectToString),TEXT("InObj"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Name))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find Name type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find Name type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_NameToString),TEXT("InName"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Text))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find Text type"))
+				// UE_LOG(LogTemp,Warning,TEXT("find Text type"))
 				UK2Node_CallFunction * ConvertFunc = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this,SourceGraph);
 				ConvertFunc->SetFromFunction(UKismetTextLibrary::StaticClass()->FindFunctionByName(
 				GET_FUNCTION_NAME_CHECKED(UKismetTextLibrary,Conv_TextToString)));
@@ -268,7 +260,7 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_IntVectorToString),TEXT("InIntVec"));
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Class))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("find Class type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find Class type"));
 				UK2Node_CallFunction * ConvertFunc = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this,SourceGraph);
 				ConvertFunc->SetFromFunction(UKismetSystemLibrary::StaticClass()->FindFunctionByName(
 				GET_FUNCTION_NAME_CHECKED(UKismetSystemLibrary,GetClassDisplayName)));
@@ -283,7 +275,7 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			{
 				// 请注意: 枚举类型会被传递给 Byte ;
 				// 也就是此分支失效,仅 Byte 分支可用;
-				UE_LOG(LogTemp,Warning,TEXT("find Enum type"));
+				// UE_LOG(LogTemp,Warning,TEXT("find Enum type"));
 				// 此函数仅仅返回枚举索引
 				// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ByteToString),TEXT("InByte"));
 				if (tmp_pin->LinkedTo.Num())
@@ -292,11 +284,11 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 				}
 				//获取此节点连接节点的UEnum类;
 				UEnum *  tmp_enum =  Cast<UEnum>(tmp_pin->LinkedTo[0]->PinType.PinSubCategoryObject.Get());
-				UE_LOG(LogTemp,Warning,TEXT("UEnum's name is [%s]"),*tmp_enum->GetName());
+				// UE_LOG(LogTemp,Warning,TEXT("UEnum's name is [%s]"),*tmp_enum->GetName());
 			}
 			else
 			{
-				UE_LOG(LogTemp,Warning,TEXT("Some format not handle in this node : %s"),*tmp_pc_name.ToString());
+				// UE_LOG(LogTemp,Warning,TEXT("Some format not handle in this node : %s"),*tmp_pc_name.ToString());
 			}
 			// 其他数据格式没啥用;
 		}
@@ -307,8 +299,7 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 void UK2Node_PrintInfo::PostReconstructNode()
 {
 	Super::PostReconstructNode();
-	UE_LOG(LogTemp, Warning,
-	       TEXT("/*************************************** PostReconstructNode *************************************/"));
+	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PostReconstructNode *************************************/"));
 	// 遍历所有Pin,重新设置类型;
 	for (UEdGraphPin* it : Pins)
 	{
@@ -320,11 +311,8 @@ UK2Node::ERedirectType UK2Node_PrintInfo::DoPinsMatchForReconstruction(const UEd
                                                                        const UEdGraphPin* OldPin,
                                                                        int32 OldPinIndex) const
 {
-	UE_LOG(LogTemp, Warning,
-	       TEXT(
-		       "/*************************************** DoPinsMatchForReconstruction *************************************/"
-	       ));
-	// UE_LOG(LogTemp,Warning,TEXT("new pin name [%s] index [%d] | old pin name [%s] index [%d]"),
+	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** DoPinsMatchForReconstruction *************************************/"));
+	// // UE_LOG(LogTemp,Warning,TEXT("new pin name [%s] index [%d] | old pin name [%s] index [%d]"),
 	// 	*NewPin->PinName.ToString(),NewPinIndex,*OldPin->PinName.ToString(),OldPinIndex);
 	return Super::DoPinsMatchForReconstruction(NewPin, NewPinIndex, OldPin, OldPinIndex);
 }
@@ -332,8 +320,8 @@ UK2Node::ERedirectType UK2Node_PrintInfo::DoPinsMatchForReconstruction(const UEd
 bool UK2Node_PrintInfo::IsConnectionDisallowed(const UEdGraphPin* MyPin, const UEdGraphPin* OtherPin,
                                                FString& OutReason) const
 {
-	// UE_LOG(LogTemp,Warning,TEXT("/*************************************** IsConnectionDisallowed *************************************/"));
-	// UE_LOG(LogTemp,Warning,TEXT("MyPin name [%s] , OtherPin name [%s] , Reason [%s]"),
+	// // UE_LOG(LogTemp,Warning,TEXT("/*************************************** IsConnectionDisallowed *************************************/"));
+	// // UE_LOG(LogTemp,Warning,TEXT("MyPin name [%s] , OtherPin name [%s] , Reason [%s]"),
 	// 	*MyPin->GetName(),*OtherPin->GetName(),*OutReason);
 	return Super::IsConnectionDisallowed(MyPin, OtherPin, OutReason);
 }

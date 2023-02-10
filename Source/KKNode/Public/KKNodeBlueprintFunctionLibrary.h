@@ -22,5 +22,8 @@ public:
 
 	UFUNCTION(BlueprintCallable,meta=(BlueprintInternalUseOnly = true))
 	static void KKNode_PrintInfo(FString Format,const TArray<FString> & Data);
-	
+
+	// this is K2Node_TestNode's Run Function
+	UFUNCTION(BlueprintCallable,meta=(BlueprintInternalUseOnly = true))
+	static void KKNode_TestNode(FString Data);
 };

@@ -33,3 +33,8 @@ void UKKNodeBlueprintFunctionLibrary::KKNode_PrintInfo(FString Format,const TArr
 	UE_LOG(LogTemp,Warning,TEXT("%s"),*tmp);
 }
 
+void UKKNodeBlueprintFunctionLibrary::KKNode_TestNode(FString Data)
+{
+	UE_LOG(LogTemp,Warning,TEXT("KKNode_TestNode : %s"),*Data);
+}
+
