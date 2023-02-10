@@ -22,8 +22,5 @@ public:
 
 	UFUNCTION(BlueprintCallable,meta=(BlueprintInternalUseOnly = true))
 	static void KKNode_PrintInfo(FString Format,const TArray<FString> & Data);
-
-
 	
-
 };

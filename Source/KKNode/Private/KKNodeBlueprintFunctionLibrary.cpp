@@ -16,6 +16,20 @@ void UKKNodeBlueprintFunctionLibrary::KKNode_SaySomething(const TArray<FString>&
 
 void UKKNodeBlueprintFunctionLibrary::KKNode_PrintInfo(FString Format,const TArray<FString> & Data)
 {
-	FString str = FString::Join(Data,TEXT("->"));
-	UE_LOG(LogTemp,Warning,TEXT("format [%s] | content [%s]"),*Format,*str);
+	// FString str = FString::Join(Data,TEXT("->"));
+	// UE_LOG(LogTemp,Warning,TEXT("format [%s] | content [%s]"),*Format,*str);
+	FString tmp = Format;
+	FRegexPattern Pattern(TEXT("\\{\\s*\\w+\\s*\\}"));
+	FRegexMatcher Matcher(Pattern,Format);
+	int i = 0 ;
+	while (Matcher.FindNext())
+	{
+		if (Data.IsValidIndex(i))
+		{
+			tmp.ReplaceInline(*Matcher.GetCaptureGroup(0),*Data[i]);
+		}
+		i++;
+	}
+	UE_LOG(LogTemp,Warning,TEXT("%s"),*tmp);
 }
+

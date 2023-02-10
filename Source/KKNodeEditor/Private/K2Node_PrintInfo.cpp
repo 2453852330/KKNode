@@ -61,6 +61,12 @@ void UK2Node_PrintInfo::PinDefaultValueChanged(UEdGraphPin* Pin)
 		return;
 	}
 
+	UE_LOG(LogTemp,Warning,TEXT("/*************************************** test schema *************************************/"));
+	const UEdGraphSchema * Schema = GetSchema();
+	FString SchemaName = Schema->GetName();
+	UE_LOG(LogTemp,Warning,TEXT("get this node's schema's name : %s"),*SchemaName);
+	// Schema->GetGraphType(); check is function?Macro?
+	
 	// 移除其他的Pin,准备重新创建
 	for (auto it = Pins.CreateIterator(); it; ++it)
 	{
@@ -191,34 +197,57 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			// 因为绑定的函数参数是 TArray<FString> ,所以需要全部转换到 FString;
 			if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_String))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find String type"));
 				CompilerContext.MovePinLinksToIntermediate(*tmp_pin, *ArrayInputPin);
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Int))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find Int type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_IntToString),TEXT("InInt"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Float))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find FLoat type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_FloatToString),TEXT("InFloat"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Boolean))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find Boolean type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_BoolToString),TEXT("InBool"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Byte))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find Byte type"));
+
+				if (tmp_pin->LinkedTo.Num() <= 0)
+				{
+					continue;
+				}
+				// 测试发现,该测试无法区分Enum和Byte;
+				// FormatText根本不支持输入Enum,暂时也只处理Byte,如需打印Enum,请先转为String即可;
+				// UEnum * Enum = Cast<UEnum>(tmp_pin->LinkedTo[0]->PinType.PinSubCategoryObject.Get());
+				// if (Enum)
+				// {
+				// 	UE_LOG(LogTemp,Warning,TEXT("find Enum"));
+				// }
+				// else
+				// {
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ByteToString),TEXT("InByte"));
+				// }
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Object))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find Object type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ObjectToString),TEXT("InObj"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Name))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find Name type"));
 				quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_NameToString),TEXT("InName"));
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Text))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find Text type"))
 				UK2Node_CallFunction * ConvertFunc = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this,SourceGraph);
 				ConvertFunc->SetFromFunction(UKismetTextLibrary::StaticClass()->FindFunctionByName(
 				GET_FUNCTION_NAME_CHECKED(UKismetTextLibrary,Conv_TextToString)));
@@ -239,6 +268,7 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_IntVectorToString),TEXT("InIntVec"));
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Class))
 			{
+				UE_LOG(LogTemp,Warning,TEXT("find Class type"));
 				UK2Node_CallFunction * ConvertFunc = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this,SourceGraph);
 				ConvertFunc->SetFromFunction(UKismetSystemLibrary::StaticClass()->FindFunctionByName(
 				GET_FUNCTION_NAME_CHECKED(UKismetSystemLibrary,GetClassDisplayName)));
@@ -251,9 +281,22 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			}
 			else if (tmp_pc_name.IsEqual(UEdGraphSchema_K2::PC_Enum))
 			{
+				// 请注意: 枚举类型会被传递给 Byte ;
+				// 也就是此分支失效,仅 Byte 分支可用;
+				UE_LOG(LogTemp,Warning,TEXT("find Enum type"));
 				// 此函数仅仅返回枚举索引
 				// quick_link(GET_FUNCTION_NAME_CHECKED(UKismetStringLibrary,Conv_ByteToString),TEXT("InByte"));
-				
+				if (tmp_pin->LinkedTo.Num())
+				{
+					continue;;
+				}
+				//获取此节点连接节点的UEnum类;
+				UEnum *  tmp_enum =  Cast<UEnum>(tmp_pin->LinkedTo[0]->PinType.PinSubCategoryObject.Get());
+				UE_LOG(LogTemp,Warning,TEXT("UEnum's name is [%s]"),*tmp_enum->GetName());
+			}
+			else
+			{
+				UE_LOG(LogTemp,Warning,TEXT("Some format not handle in this node : %s"),*tmp_pc_name.ToString());
 			}
 			// 其他数据格式没啥用;
 		}
