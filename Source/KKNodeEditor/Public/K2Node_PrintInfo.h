@@ -63,8 +63,11 @@ public:
 	virtual void PostReconstructNode() override;
 
 	virtual ERedirectType DoPinsMatchForReconstruction(const UEdGraphPin* NewPin, int32 NewPinIndex, const UEdGraphPin* OldPin, int32 OldPinIndex) const override;
+
+	// 检测两个节点之间能否连接;
 	virtual bool IsConnectionDisallowed(const UEdGraphPin* MyPin, const UEdGraphPin* OtherPin, FString& OutReason) const override;
 	/*************************************** save data *************************************/
+
 	
 	UEdGraphPin * InputStrPin = nullptr;
 
@@ -72,7 +75,9 @@ public:
 	TArray<FString> PinNames;
 
 	/*************************************** custom helper *************************************/
-	UEdGraphPin * KK_GetInputStrPin();
+	void KK_GetInputStrPin() const;
+
+	// 此函数取消使用
 	void KK_RegexName(FString Str,FString Rule,TArray<FString> & Result);
 
 	bool KK_CheckPinNameExist(FString PinName);
@@ -85,7 +90,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 ShowLevel = 1;
 
-	
+	// 使用此函数匹配
+	TArray<FString> KK_RegexFindValue(FString CheckString);
+	bool KK_FindSameNamePin(FString InPinName);
 };
 
 

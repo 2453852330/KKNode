@@ -12,13 +12,13 @@
 void UK2Node_TestNode::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	UE_LOG(LogTemp,Warning,TEXT("PostEditChangeProperty"));
+	// UE_LOG(LogTemp,Warning,TEXT("PostEditChangeProperty"));
 }
 
 /*************************************** Begin UEdGraphNode Interface. *************************************/
 void UK2Node_TestNode::AllocateDefaultPins()
 {
-	UE_LOG(LogTemp,Warning,TEXT("AllocateDefaultPins"));
+	// UE_LOG(LogTemp,Warning,TEXT("AllocateDefaultPins"));
 	CreatePin(EGPD_Input,UEdGraphSchema_K2::PC_Exec,UEdGraphSchema_K2::PN_Execute);
 	CreatePin(EGPD_Output,UEdGraphSchema_K2::PC_Exec,UEdGraphSchema_K2::PN_Then);
 	FormatPin = CreatePin(EGPD_Input,UEdGraphSchema_K2::PC_String,KK_GetFormatPinName());
@@ -31,20 +31,20 @@ void UK2Node_TestNode::AllocateDefaultPins()
 void UK2Node_TestNode::PinConnectionListChanged(UEdGraphPin* Pin)
 {
 	Super::PinConnectionListChanged(Pin);
-	UE_LOG(LogTemp,Warning,TEXT("PinConnectionListChanged"));
+	// UE_LOG(LogTemp,Warning,TEXT("PinConnectionListChanged"));
 	KK_UpdatePinType();
 }
 
 void UK2Node_TestNode::PinDefaultValueChanged(UEdGraphPin* Pin)
 {
-	UE_LOG(LogTemp,Warning,TEXT("PinDefaultValueChanged"));
+	// UE_LOG(LogTemp,Warning,TEXT("PinDefaultValueChanged"));
 	// 使用这个处理,完美解决Pin断连和顺序问题;
 	if (FormatPin && Pin==FormatPin && Pin->Direction==EGPD_Input && Pin->LinkedTo.Num() == 0)
 	{
 		PinNames.Reset();
 		
 		TArray<FString> NewPinNames = KK_RegexFindValue(Pin->GetDefaultAsString());
-		UE_LOG(LogTemp,Warning,TEXT("find %d new pin names"),NewPinNames.Num());
+		// UE_LOG(LogTemp,Warning,TEXT("find %d new pin names"),NewPinNames.Num());
 		for (int32 i = 0 ; i < NewPinNames.Num() ; ++i)
 		{
 			// 检查是否存在同名Pin
@@ -75,7 +75,7 @@ void UK2Node_TestNode::PinDefaultValueChanged(UEdGraphPin* Pin)
 
 void UK2Node_TestNode::PinTypeChanged(UEdGraphPin* Pin)
 {
-	UE_LOG(LogTemp,Warning,TEXT("PinTypeChanged"));
+	// UE_LOG(LogTemp,Warning,TEXT("PinTypeChanged"));
 }
 
 
@@ -93,30 +93,28 @@ FText UK2Node_TestNode::GetPinDisplayName(const UEdGraphPin* Pin) const
 void UK2Node_TestNode::PostReconstructNode()
 {
 	Super::PostReconstructNode();
-	UE_LOG(LogTemp,Warning,TEXT("PostReconstructNode"));
+	// UE_LOG(LogTemp,Warning,TEXT("PostReconstructNode"));
 }
 
 void UK2Node_TestNode::ExpandNode(FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
 	Super::ExpandNode(CompilerContext, SourceGraph);
-	UE_LOG(LogTemp,Warning,TEXT("ExpandNode"));
+	// UE_LOG(LogTemp,Warning,TEXT("ExpandNode"));
 }
 
 UK2Node::ERedirectType UK2Node_TestNode::DoPinsMatchForReconstruction(const UEdGraphPin* NewPin, int32 NewPinIndex,
 	const UEdGraphPin* OldPin, int32 OldPinIndex) const
 {
-	UE_LOG(LogTemp,Warning,TEXT("DoPinsMatchForReconstruction"));
-	UE_LOG(LogTemp,Warning,TEXT("NewPin's name : %s , NewPin's index : %d | OldPin's name : %s , OldPin's index : %d ")
-		,*NewPin->GetName(),NewPinIndex,*OldPin->GetName(),OldPinIndex);
+	// UE_LOG(LogTemp,Warning,TEXT("DoPinsMatchForReconstruction"));
+	// UE_LOG(LogTemp,Warning,TEXT("NewPin's name : %s , NewPin's index : %d | OldPin's name : %s , OldPin's index : %d "),*NewPin->GetName(),NewPinIndex,*OldPin->GetName(),OldPinIndex);
 	return Super::DoPinsMatchForReconstruction(NewPin, NewPinIndex, OldPin, OldPinIndex);
 }
 
 bool UK2Node_TestNode::IsConnectionDisallowed(const UEdGraphPin* MyPin, const UEdGraphPin* OtherPin,
 	FString& OutReason) const
 {
-	UE_LOG(LogTemp,Warning,TEXT("IsConnectionDisallowed"));
-	UE_LOG(LogTemp,Warning,TEXT("MyPin's name : %s , OtherPin's name : %s , Reason : %s "),
-		*MyPin->GetName(),*OtherPin->GetName(),*OutReason);
+	// UE_LOG(LogTemp,Warning,TEXT("IsConnectionDisallowed"));
+	// UE_LOG(LogTemp,Warning,TEXT("MyPin's name : %s , OtherPin's name : %s , Reason : %s "),*MyPin->GetName(),*OtherPin->GetName(),*OutReason);
 	return Super::IsConnectionDisallowed(MyPin, OtherPin, OutReason);
 }
 

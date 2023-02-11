@@ -50,54 +50,39 @@ void UK2Node_PrintInfo::PinDefaultValueChanged(UEdGraphPin* Pin)
 	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PinDefaultValueChanged *************************************/"));
 	// UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s | new string : %s"), *Pin->GetName(), *Pin->GetDefaultAsString());
 
-	if (Pin != InputStrPin || Pin->LinkedTo.Num() != 0)
+	// 使用这个处理,完美解决Pin断连和顺序问题;
+	if (InputStrPin && Pin==InputStrPin && Pin->Direction==EGPD_Input && Pin->LinkedTo.Num() == 0)
 	{
-		return;
-	}
-
-	// UE_LOG(LogTemp,Warning,TEXT("/*************************************** test schema *************************************/"));
-	const UEdGraphSchema * Schema = GetSchema();
-	FString SchemaName = Schema->GetName();
-	// UE_LOG(LogTemp,Warning,TEXT("get this node's schema's name : %s"),*SchemaName);
-	// Schema->GetGraphType(); check is function?Macro?
-	
-	// 移除其他的Pin,准备重新创建
-	for (auto it = Pins.CreateIterator(); it; ++it)
-	{
-		UEdGraphPin* CheckPin = *it;
-		if (CheckPin->PinName.IsEqual(UEdGraphSchema_K2::PN_Execute) || CheckPin->PinName.IsEqual(
-			UEdGraphSchema_K2::PN_Then))
+		PinNames.Reset();
+		
+		TArray<FString> NewPinNames = KK_RegexFindValue(Pin->GetDefaultAsString());
+	//	UE_LOG(LogTemp,Warning,TEXT("find %d new pin names"),NewPinNames.Num());
+		for (int32 i = 0 ; i < NewPinNames.Num() ; ++i)
 		{
-			continue;
+			// 检查是否存在同名Pin
+			if (!KK_FindSameNamePin(NewPinNames[i]))
+			{
+				CreatePin(EGPD_Input,UEdGraphSchema_K2::PC_Wildcard,*NewPinNames[i]);
+			}
+			PinNames.Add(NewPinNames[i]);
 		}
-		if (InputStrPin && CheckPin == InputStrPin && CheckPin->Direction == EGPD_Input)
+
+		// 移除无效Pin
+		for (auto it = Pins.CreateIterator(); it ; ++it)
 		{
-			continue;
+			// 已有节点中需要删除的节点
+			UEdGraphPin * CheckPin = *it;
+			if (!CheckPin->PinName.IsEqual(UEdGraphSchema_K2::PN_Execute) &&
+				CheckPin != InputStrPin &&
+				CheckPin->Direction == EGPD_Input &&
+				NewPinNames.Find(CheckPin->GetName()) == INDEX_NONE)
+			{
+				CheckPin->MarkPendingKill();
+				it.RemoveCurrent();
+			}
 		}
-		CheckPin->MarkPendingKill();
-		it.RemoveCurrent();
+		GetGraph()->NotifyGraphChanged();
 	}
-
-	// asf{a}asfafa{b}asfa
-	// 重新创建Pin
-	TArray<FString> find_pin_name;
-	KK_RegexName(Pin->GetDefaultAsString(), FString(TEXT("\\{\\s*\\w+\\s*\\}")), find_pin_name);
-
-	PinNames.Reset();
-	for (FString it : find_pin_name)
-	{
-		it.ReplaceInline(TEXT("{"),TEXT(""));
-		it.ReplaceInline(TEXT("}"),TEXT(""));
-		it.RemoveSpacesInline();
-		// 跳过同名
-		if (PinNames.Find(it) == INDEX_NONE)
-		{
-			PinNames.Add(it);
-			CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Wildcard, *it);
-		}
-	}
-
-	GetGraph()->NotifyGraphChanged();
 }
 
 void UK2Node_PrintInfo::PinTypeChanged(UEdGraphPin* Pin)
@@ -288,7 +273,7 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 			}
 			else
 			{
-				// UE_LOG(LogTemp,Warning,TEXT("Some format not handle in this node : %s"),*tmp_pc_name.ToString());
+				UE_LOG(LogTemp,Warning,TEXT("Some format not handle in this node : %s"),*tmp_pc_name.ToString());
 			}
 			// 其他数据格式没啥用;
 		}
@@ -323,17 +308,47 @@ bool UK2Node_PrintInfo::IsConnectionDisallowed(const UEdGraphPin* MyPin, const U
 	// // UE_LOG(LogTemp,Warning,TEXT("/*************************************** IsConnectionDisallowed *************************************/"));
 	// // UE_LOG(LogTemp,Warning,TEXT("MyPin name [%s] , OtherPin name [%s] , Reason [%s]"),
 	// 	*MyPin->GetName(),*OtherPin->GetName(),*OutReason);
+	
+	// const 函数只能调用const函数
+	KK_GetInputStrPin();
+	if (MyPin != InputStrPin && MyPin->Direction == EGPD_Input && !MyPin->PinName.IsEqual(UEdGraphSchema_K2::PN_Execute))
+	{
+		const UEdGraphSchema_K2* K2Schema = Cast<const UEdGraphSchema_K2>(GetSchema());
+		const FName& OtherPinCategory = OtherPin->PinType.PinCategory;
+
+		bool bIsValidType = false;
+		if (OtherPinCategory == UEdGraphSchema_K2::PC_Int || OtherPinCategory == UEdGraphSchema_K2::PC_Float || OtherPinCategory == UEdGraphSchema_K2::PC_Text ||
+			(OtherPinCategory == UEdGraphSchema_K2::PC_Byte && !OtherPin->PinType.PinSubCategoryObject.IsValid()) ||
+			OtherPinCategory == UEdGraphSchema_K2::PC_Boolean || OtherPinCategory == UEdGraphSchema_K2::PC_String || OtherPinCategory == UEdGraphSchema_K2::PC_Name || OtherPinCategory == UEdGraphSchema_K2::PC_Object ||
+			OtherPinCategory == UEdGraphSchema_K2::PC_Wildcard)
+		{
+			bIsValidType = true;
+		}
+		else if (OtherPinCategory == UEdGraphSchema_K2::PC_Byte || OtherPinCategory == UEdGraphSchema_K2::PC_Enum)
+		{
+			static UEnum* TextGenderEnum = FindObjectChecked<UEnum>(ANY_PACKAGE, TEXT("ETextGender"), /*ExactClass*/true);
+			if (OtherPin->PinType.PinSubCategoryObject == TextGenderEnum)
+			{
+				bIsValidType = true;
+			}
+		}
+
+		if (!bIsValidType)
+		{
+			OutReason = TEXT("Format arguments may only be Byte, Integer, Float, Text, String, Name, Boolean, Object, Wildcard or ETextGender");
+			return true;
+		}
+	}
 	return Super::IsConnectionDisallowed(MyPin, OtherPin, OutReason);
 }
 
 /*************************************** custom helper *************************************/
-UEdGraphPin* UK2Node_PrintInfo::KK_GetInputStrPin()
+void UK2Node_PrintInfo::KK_GetInputStrPin() const
 {
 	if (!InputStrPin)
 	{
-		InputStrPin = FindPinChecked(FName(TEXT("str")), EGPD_Input);
+		const_cast<UK2Node_PrintInfo*>(this)->InputStrPin = FindPinChecked(FName(TEXT("str")), EGPD_Input);
 	}
-	return InputStrPin;
 }
 
 void UK2Node_PrintInfo::KK_RegexName(FString Str, FString Rule, TArray<FString>& Result)
@@ -420,4 +435,33 @@ UEdGraphPin* UK2Node_PrintInfo::FindOutputStructPinChecked(UEdGraphNode* Node)
 	}
 	check(NULL != OutputPin);
 	return OutputPin;
+}
+
+TArray<FString> UK2Node_PrintInfo::KK_RegexFindValue(FString CheckString)
+{
+	TArray<FString> Tmp;
+	FRegexPattern Pattern(TEXT("\\{\\s*\\w+\\s*\\}"));
+	FRegexMatcher Matcher(Pattern,CheckString);
+	FString Init;
+	while (Matcher.FindNext())
+	{
+		Init = Matcher.GetCaptureGroup(0);
+		Init.ReplaceInline(TEXT("{"),TEXT(""));
+		Init.ReplaceInline(TEXT("}"),TEXT(""));
+		Init.RemoveSpacesInline();
+		Tmp.Add(Init);
+	}
+	return Tmp;
+}
+
+bool UK2Node_PrintInfo::KK_FindSameNamePin(FString InPinName)
+{
+	for (UEdGraphPin * it : Pins)
+	{
+		if (it->GetName().Equals(InPinName))
+		{
+			return true;
+		}
+	}
+	return false;
 }
