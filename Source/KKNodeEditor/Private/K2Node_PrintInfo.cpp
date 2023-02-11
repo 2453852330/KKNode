@@ -36,20 +36,13 @@ void UK2Node_PrintInfo::AllocateDefaultPins()
 void UK2Node_PrintInfo::PinConnectionListChanged(UEdGraphPin* Pin)
 {
 	Super::PinConnectionListChanged(Pin);
-	// Modify();
-	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PinConnectionListChanged *************************************/"));
-	// UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s"), *Pin->GetName());
-	// FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(GetBlueprint());
-	// FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprint());
 	KK_ResetPinType(Pin);
 }
 
 void UK2Node_PrintInfo::PinDefaultValueChanged(UEdGraphPin* Pin)
 {
 	Super::PinDefaultValueChanged(Pin);
-	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PinDefaultValueChanged *************************************/"));
-	// UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s | new string : %s"), *Pin->GetName(), *Pin->GetDefaultAsString());
-
+	
 	// 使用这个处理,完美解决Pin断连和顺序问题;
 	if (InputStrPin && Pin==InputStrPin && Pin->Direction==EGPD_Input && Pin->LinkedTo.Num() == 0)
 	{
@@ -64,7 +57,7 @@ void UK2Node_PrintInfo::PinDefaultValueChanged(UEdGraphPin* Pin)
 			{
 				CreatePin(EGPD_Input,UEdGraphSchema_K2::PC_Wildcard,*NewPinNames[i]);
 			}
-			PinNames.Add(NewPinNames[i]);
+			PinNames.AddUnique(NewPinNames[i]);
 		}
 
 		// 移除无效Pin
@@ -85,13 +78,7 @@ void UK2Node_PrintInfo::PinDefaultValueChanged(UEdGraphPin* Pin)
 	}
 }
 
-void UK2Node_PrintInfo::PinTypeChanged(UEdGraphPin* Pin)
-{
-	Super::PinTypeChanged(Pin);
-	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PinTypeChanged *************************************/"));
-	// UE_LOG(LogTemp, Warning, TEXT("Pin Name : %s"), *Pin->GetName());
-	KK_ResetPinType(Pin);
-}
+
 
 void UK2Node_PrintInfo::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
@@ -284,7 +271,7 @@ void UK2Node_PrintInfo::ExpandNode(FKismetCompilerContext& CompilerContext, UEdG
 void UK2Node_PrintInfo::PostReconstructNode()
 {
 	Super::PostReconstructNode();
-	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** PostReconstructNode *************************************/"));
+	UE_LOG(LogTemp,Warning,TEXT("PostReconstructNode"));
 	// 遍历所有Pin,重新设置类型;
 	for (UEdGraphPin* it : Pins)
 	{
@@ -292,15 +279,6 @@ void UK2Node_PrintInfo::PostReconstructNode()
 	}
 }
 
-UK2Node::ERedirectType UK2Node_PrintInfo::DoPinsMatchForReconstruction(const UEdGraphPin* NewPin, int32 NewPinIndex,
-                                                                       const UEdGraphPin* OldPin,
-                                                                       int32 OldPinIndex) const
-{
-	// UE_LOG(LogTemp, Warning,TEXT("/*************************************** DoPinsMatchForReconstruction *************************************/"));
-	// // UE_LOG(LogTemp,Warning,TEXT("new pin name [%s] index [%d] | old pin name [%s] index [%d]"),
-	// 	*NewPin->PinName.ToString(),NewPinIndex,*OldPin->PinName.ToString(),OldPinIndex);
-	return Super::DoPinsMatchForReconstruction(NewPin, NewPinIndex, OldPin, OldPinIndex);
-}
 
 bool UK2Node_PrintInfo::IsConnectionDisallowed(const UEdGraphPin* MyPin, const UEdGraphPin* OtherPin,
                                                FString& OutReason) const
@@ -351,28 +329,7 @@ void UK2Node_PrintInfo::KK_GetInputStrPin() const
 	}
 }
 
-void UK2Node_PrintInfo::KK_RegexName(FString Str, FString Rule, TArray<FString>& Result)
-{
-	FRegexPattern Pattern(Rule);
-	FRegexMatcher Matcher(Pattern, Str);
-	while (Matcher.FindNext())
-	{
-		Result.Add(Matcher.GetCaptureGroup(0));
-	}
-}
 
-
-bool UK2Node_PrintInfo::KK_CheckPinNameExist(FString PinName)
-{
-	for (UEdGraphPin* it : Pins)
-	{
-		if (it->GetName() == PinName)
-		{
-			return true;
-		}
-	}
-	return false;
-}
 
 void UK2Node_PrintInfo::KK_ResetPinType(UEdGraphPin* Pin)
 {
@@ -420,22 +377,6 @@ void UK2Node_PrintInfo::KK_ResetPinType(UEdGraphPin* Pin)
 }
 
 
-UEdGraphPin* UK2Node_PrintInfo::FindOutputStructPinChecked(UEdGraphNode* Node)
-{
-	check(NULL != Node);
-	UEdGraphPin* OutputPin = NULL;
-	for (int32 PinIndex = 0; PinIndex < Node->Pins.Num(); ++PinIndex)
-	{
-		UEdGraphPin* Pin = Node->Pins[PinIndex];
-		if (Pin && (EGPD_Output == Pin->Direction))
-		{
-			OutputPin = Pin;
-			break;
-		}
-	}
-	check(NULL != OutputPin);
-	return OutputPin;
-}
 
 TArray<FString> UK2Node_PrintInfo::KK_RegexFindValue(FString CheckString)
 {

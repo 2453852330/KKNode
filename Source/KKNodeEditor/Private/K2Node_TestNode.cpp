@@ -52,7 +52,7 @@ void UK2Node_TestNode::PinDefaultValueChanged(UEdGraphPin* Pin)
 			{
 				CreatePin(EGPD_Input,UEdGraphSchema_K2::PC_Wildcard,*NewPinNames[i]);
 			}
-			PinNames.Add(NewPinNames[i]);
+			PinNames.AddUnique(NewPinNames[i]);
 		}
 
 		// 移除无效Pin
